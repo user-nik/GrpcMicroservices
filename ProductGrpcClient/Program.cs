@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
 using Grpc.Net.Client;
 using ProductGrpc.Protos;
 using System;
@@ -17,8 +18,13 @@ namespace ProductGrpcClient
             try
             {
                 await GetProductAsync(client);
-                await GetAllProductsAsync(client);
+                await Task.Delay(500);
 
+                await AddProductAsync(client);
+                await Task.Delay(500);
+
+                await GetAllProductsAsync(client);
+                await Task.Delay(500);
             }
             catch (RpcException ex)
             {
@@ -29,17 +35,10 @@ namespace ProductGrpcClient
             Console.ReadKey();
         }
 
+
         private static async Task GetAllProductsAsync(ProductsProtoService.ProductsProtoServiceClient client)
         {
             Console.WriteLine("GetAllProducts started..");
-
-            //using var clientData = client.GetAllProducts(new GetAllProductRequest());
-            //while (await clientData.ResponseStream.MoveNext())
-            //{
-            //    var currentProduct = clientData.ResponseStream.Current;
-            //    Console.WriteLine("currentProduct - " + currentProduct.ToString());
-            //
-            //}
 
             using var _clientData = client.GetAllProducts(new GetAllProductRequest());
             await foreach (var responseData in _clientData.ResponseStream.ReadAllAsync())
@@ -59,6 +58,28 @@ namespace ProductGrpcClient
                     });
 
             Console.WriteLine("response - " + response.ToString());
+        }
+
+
+        private static async Task AddProductAsync(ProductsProtoService.ProductsProtoServiceClient client)
+        {
+            Console.WriteLine("AddProductAsync started..");
+            var addProductResponse = await client.AddProductAsync(
+                    new AddProductRequest
+                    {
+                        Product = new ProductModel
+                        {
+                            Created = Timestamp.FromDateTime(DateTime.UtcNow),
+                            Description = "Added Product",
+                            Name = "Name",
+                            Price = 1799,
+                            Status = ProductStatus.Instock
+                        }
+                    }
+                );
+
+            Console.WriteLine("GetAllProducts started.." + addProductResponse.ToString());
+
         }
     }
 }
