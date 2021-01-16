@@ -1,4 +1,5 @@
-﻿using Google.Protobuf.WellKnownTypes;
+﻿using AutoMapper;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -16,11 +17,13 @@ namespace ProductGrpc.Services
     {
         private readonly ProductsContext _productContext;
         private readonly ILogger<ProductService> _logger;
+        private readonly IMapper _mapper;
 
-        public ProductService(ProductsContext productContext, ILogger<ProductService> logger)
+        public ProductService(ProductsContext productContext, ILogger<ProductService> logger, IMapper mapper)
         {
             _productContext = productContext ?? throw new ArgumentNullException(nameof(productContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         public override Task<Empty> Test(Empty request, ServerCallContext context)
@@ -37,18 +40,7 @@ namespace ProductGrpc.Services
                 throw new RpcException(new Status(StatusCode.NotFound, "There is no product"));
             }
 
-
-
-            var productModel = new ProductModel
-            {
-                ProductId = product.ProductId,
-                Name = product.Name,
-                Description = product.Description,
-                Price = product.Price,
-                Created = Timestamp.FromDateTime(product.CreatedTime.ToUniversalTime()),
-                Status = (Protos.ProductStatus)product.Status
-            };
-
+            var productModel = _mapper.Map<ProductModel>(product);
 
             return productModel;
         }
@@ -69,15 +61,7 @@ namespace ProductGrpc.Services
 
             foreach (var product in proctList)
             {
-                var productModel = new ProductModel
-                {
-                    ProductId = product.ProductId,
-                    Name = product.Name,
-                    Description = product.Description,
-                    Price = product.Price,
-                    Created = Timestamp.FromDateTime(product.CreatedTime.ToUniversalTime()),
-                    Status = (Protos.ProductStatus)product.Status
-                };
+                var productModel = _mapper.Map<ProductModel>(product);
 
                 await responseStream.WriteAsync(productModel);
 
@@ -87,29 +71,12 @@ namespace ProductGrpc.Services
         public override async Task<ProductModel> AddProduct(AddProductRequest request,
             ServerCallContext context)
         {
-            var product = new Product
-            {
-                Name = request.Product.Name,
-                Description = request.Product.Description,
-                Price = request.Product.Price,
-                CreatedTime = request.Product.Created.ToDateTime(),
-                Status = (Models.ProductStatus)request.Product.Status
-            };
+            var product = _mapper.Map<Product>(request.Product);
 
             _productContext.Products.Add(product);
             await _productContext.SaveChangesAsync();
 
-            var productModel = new ProductModel
-            {
-                ProductId = product.ProductId,
-                Name = product.Name,
-                Description = product.Description,
-                Price = product.Price,
-                Created = Timestamp.FromDateTime(product.CreatedTime.ToUniversalTime()),
-                Status = (Protos.ProductStatus)product.Status
-            };
-
-
+            var productModel = _mapper.Map<ProductModel>(product);
             return productModel;
         }
     }

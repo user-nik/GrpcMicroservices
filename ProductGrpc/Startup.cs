@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +33,9 @@ namespace ProductGrpc
             services.AddDbContext<ProductsContext>(c =>
                 c.UseSqlServer(Configuration.GetConnectionString("ProductsConnection")),
                 ServiceLifetime.Singleton
-                );
+            );
+
+            services.AddAutoMapper(typeof(Startup));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
