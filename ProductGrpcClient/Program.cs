@@ -20,13 +20,13 @@ namespace ProductGrpcClient
                 await GetProductAsync(client);
                 await Task.Delay(500);
 
-                //await AddProductAsync(client);
+                await AddProductAsync(client);
                 await Task.Delay(500);
 
                 await UpdateProductsAsync(client);
                 await Task.Delay(500);
 
-                //await DeleteProductsAsync(client);
+                await DeleteProductsAsync(client);
                 await Task.Delay(500);
 
                 await GetAllProductsAsync(client);
