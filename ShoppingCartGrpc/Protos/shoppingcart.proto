@@ -26,7 +26,7 @@ message AddItemIntoShoppingCartResponse{
 
 message RemoveItemFromShoppingCartRequest{
 	string username = 1;
-	ShoppingCartItemModel newCartItem = 2;
+	ShoppingCartItemModel removeCartItem = 2;
 }
 
 message RemoveItemFromShoppingCartResponse{
