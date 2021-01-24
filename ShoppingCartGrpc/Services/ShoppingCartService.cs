@@ -17,12 +17,14 @@ namespace ShoppingCartGrpc.Services
         private readonly ShoppingCartContext _shoppingCartContext;
         private readonly ILogger<ShoppingCartService> _logger;
         private readonly IMapper _mapper;
+        private readonly DiscountService _discountService;
 
-        public ShoppingCartService(ShoppingCartContext shoppingCartContext, ILogger<ShoppingCartService> logger, IMapper mapper)
+        public ShoppingCartService(ShoppingCartContext shoppingCartContext, ILogger<ShoppingCartService> logger, IMapper mapper, DiscountService discountService)
         {
             _shoppingCartContext = shoppingCartContext ?? throw new ArgumentNullException(nameof(shoppingCartContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _discountService = discountService ?? throw new ArgumentNullException(nameof(discountService));
         }
 
         public override async Task<ShoppingCartModel> GetShoppingCart(GetShoppingCartRequest request
@@ -125,8 +127,10 @@ namespace ShoppingCartGrpc.Services
                 }
                 else
                 {
-                    float discount = 100;
-                    newAddedCartItem.Price -= discount;
+                    var discountPercent = await _discountService.GetDiscount(item.DiscountCode);
+
+                    float discount = discountPercent.Amount/100;
+                    newAddedCartItem.Price *= discount;
                     shoppingCart.Items.Add(newAddedCartItem);
                 }
             }
